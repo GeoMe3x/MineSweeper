@@ -79,17 +79,14 @@ public class MineSweeper {
         }
     }
 
-    private static void hucreAc(ArrayList<int[][]> mayin, int girilenSatir, int girilenSutun) {
-        if (mayin.get(1)[girilenSatir][girilenSutun] == 1) System.out.println("Bu hücre zaten açık");
+    private static void hucreAc(ArrayList<int[][]> mayin, int s, int t) {
+        if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre zaten açık");
         else {
-            if (mayin.get(0)[girilenSatir][girilenSutun] == 9) {
+            if (mayin.get(0)[s][t] == 9) {
                 System.out.println("Mayına bastınız.. GAME OVER!");
                 System.exit(1);
-            } else {
-                mayin.get(1)[girilenSatir][girilenSutun] = 1;
-                komsulariBosalt(mayin, girilenSatir, girilenSutun);
-            }
-            //   mayin.get(1)[girilenSatir][girilenSutun] = 1;
+            } else if (mayin.get(0)[s][t]!=0) mayin.get(1)[s][t]=1;
+            else komsulariBosalt(mayin, s, t);
         }
         sonHaliYazdir(mayin);
     }
@@ -180,26 +177,15 @@ public class MineSweeper {
     }
 
 
-    private static void komsulariBosalt(ArrayList<int[][]> mayin, int girilenSatir, int girilenSutun) {
-        try {
-            if (mayin.get(0)[girilenSatir - 1][girilenSutun] == 0)
-                mayin.get(1)[girilenSatir - 1][girilenSutun] = 1;
-        } catch (Exception ignored) {
-        }
-        try {
-            if (mayin.get(0)[girilenSatir + 1][girilenSutun] == 0)
-                mayin.get(1)[girilenSatir + 1][girilenSutun] = 1;
-        } catch (Exception ignored) {
-        }
-        try {
-            if (mayin.get(0)[girilenSatir][girilenSutun - 1] == 0)
-                mayin.get(1)[girilenSatir][girilenSutun - 1] = 1;
-        } catch (Exception ignored) {
-        }
-        try {
-            if (mayin.get(0)[girilenSatir][girilenSutun + 1] == 0)
-                mayin.get(1)[girilenSatir][girilenSutun + 1] = 1;
-        } catch (Exception ignored) {
+    private static void komsulariBosalt(ArrayList<int[][]> mayin, int s, int t) {
+        if (s < 0 || s > mayin.get(0).length-1 || t < 0 || t > mayin.get(0)[0].length-1 || mayin.get(0)[s][t] != 0|| mayin.get(1)[s][t]==1)
+            return;
+        else {
+            mayin.get(1)[s][t] = 1;
+            komsulariBosalt(mayin, s - 1, t);
+            komsulariBosalt(mayin, s + 1, t);
+            komsulariBosalt(mayin, s , t - 1);
+            komsulariBosalt(mayin, s , t + 1);
         }
     }
 }

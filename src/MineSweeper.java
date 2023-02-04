@@ -1,12 +1,12 @@
-import jdk.nashorn.internal.ir.annotations.Ignore;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
 public class MineSweeper {
+    private static int isaretSayisi;
+    private static int dogruTahminSayisi;
+    private static int mayinSayisi;
     public void run() throws InterruptedException {
         bilgiGiris();
     }
@@ -23,7 +23,7 @@ public class MineSweeper {
         System.out.print("1-Kolay\n2-Orta\n3-Zor\nZorluk seviyesi girin:");
         int zorlukSeviyesi = scanInt.nextInt();
 
-        int mayinSayisi = mayinSayisiHesapla(satirSayisi, sutunSayisi, zorlukSeviyesi);
+        mayinSayisi = mayinSayisiHesapla(satirSayisi, sutunSayisi, zorlukSeviyesi);
 
         String[][] mayinliBolge = mayinDose(satirSayisi, sutunSayisi, mayinSayisi);
         int[][] SayiTablosu = mayinliBolgeSayiliOlustur(mayinliBolge, satirSayisi, sutunSayisi);
@@ -32,10 +32,10 @@ public class MineSweeper {
         mayin.add(SayiTablosu);
         mayin.add(Takip);
 
-        mayinliBolgeYazdir(mayinliBolge);
-        mayinliBolgeSayiliYazdir(SayiTablosu);
+        // mayinliBolgeYazdir(mayinliBolge);
+        // mayinliBolgeSayiliYazdir(SayiTablosu);
         sonHaliYazdir(mayin);
-        oyunaBasla(mayinliBolge, mayin, mayinSayisi);
+        oyunaBasla(mayin, mayinSayisi);
 
 
     }
@@ -44,7 +44,7 @@ public class MineSweeper {
         return ((satirSayisi * sutunSayisi) / 8) * zorlukSeviyesi;
     }
 
-    public static void oyunaBasla(String[][] mayinliBolge, ArrayList<int[][]> mayin, int mayinSayisi) throws InterruptedException {
+    public static void oyunaBasla(ArrayList<int[][]> mayin, int mayinSayisi) throws InterruptedException {
         int sayac = 1;
         Scanner scanInt = new Scanner(System.in);
         System.out.println("\nMayınlı bölge oluşturuldu..");
@@ -53,10 +53,10 @@ public class MineSweeper {
         Thread.sleep(1000);
         while (true) {
             System.out.print(sayac + ". tahmininiz için \nSatır numarası girin = ");
-            int girilenSatir = scanInt.nextInt();
+            int s = scanInt.nextInt();
             System.out.print("Sütun numarası girin = ");
-            int girilenSutun = scanInt.nextInt();
-            if (girilenSatir >= 0 && girilenSatir < mayin.get(0).length && girilenSutun >= 0 && girilenSutun < mayin.get(0).length) {
+            int t = scanInt.nextInt();
+            if (s >= 0 && s < mayin.get(0).length && t >= 0 && t < mayin.get(0).length) {
                 sayac++;
 
                 System.out.println("Bu hücreyi açmak için 1, işaretlemek için 2, işareti kaldırmak için 0 giriniz.");
@@ -64,13 +64,13 @@ public class MineSweeper {
                 secim = scanInt.nextInt();
                 switch (secim) {
                     case 0:
-                        isaretiKaldir(mayin, girilenSatir, girilenSutun);
+                        isaretiKaldir(mayin, s, t);
                         break;
                     case 1:
-                        hucreAc(mayin, girilenSatir, girilenSutun);
+                        hucreAc(mayin, s, t);
                         break;
                     case 2:
-                        isaretle(mayin, girilenSatir, girilenSutun);
+                        isaretle(mayin, s, t);
                         break;
                     default:
                         System.out.println("Hatalı giriş..");
@@ -85,23 +85,26 @@ public class MineSweeper {
             if (mayin.get(0)[s][t] == 9) {
                 System.out.println("Mayına bastınız.. GAME OVER!");
                 System.exit(1);
-            } else if (mayin.get(0)[s][t]!=0) mayin.get(1)[s][t]=1;
-            else komsulariBosalt(mayin, s, t);
+            } else if (mayin.get(0)[s][t] != 0) mayin.get(1)[s][t] = 1;
+            else hucreleriAc(mayin, s, t);
         }
         sonHaliYazdir(mayin);
     }
 
-    private static void isaretle(ArrayList<int[][]> mayin, int girilenSatir, int girilenSutun) {
-        if (mayin.get(1)[girilenSatir][girilenSutun] == 2) System.out.println("Bu hücre zaten işaretlenmiş.");
-        else if (mayin.get(1)[girilenSatir][girilenSutun] == 1) System.out.println("Bu hücre açık");
-        else mayin.get(1)[girilenSatir][girilenSutun] = 2;
+    private static void isaretle(ArrayList<int[][]> mayin, int s, int t) {
+        if (mayin.get(1)[s][t] == 2) System.out.println("Bu hücre zaten işaretlenmiş.");
+        else if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre açık");
+        else {mayin.get(1)[s][t] = 2; isaretSayisi++;}
+        if (mayin.get(0)[s][t]==9) dogruTahminSayisi++;
+        if (dogruTahminSayisi==isaretSayisi && mayinSayisi==isaretSayisi){sonHaliYazdir(mayin); System.out.println("Tebrikler...!  Tüm mayınları doğru işaretlediniz..");
+            System.exit(2);}
         sonHaliYazdir(mayin);
     }
 
-    private static void isaretiKaldir(ArrayList<int[][]> mayin, int girilenSatir, int girilenSutun) {
-        if (mayin.get(1)[girilenSatir][girilenSutun] == 0) System.out.println("Bu hücre işaretlenmemiş.");
-        else if (mayin.get(1)[girilenSatir][girilenSutun] == 1) System.out.println("Bu hücre açık");
-        else mayin.get(1)[girilenSatir][girilenSutun] = 0;
+    private static void isaretiKaldir(ArrayList<int[][]> mayin, int s, int t) {
+        if (mayin.get(1)[s][t] == 0) System.out.println("Bu hücre işaretlenmemiş.");
+        else if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre açık");
+        else {mayin.get(1)[s][t] = 0; isaretSayisi--;}
         sonHaliYazdir(mayin);
 
     }
@@ -141,6 +144,7 @@ public class MineSweeper {
             }
             System.out.println();
         }
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     }
 
     public static String[][] mayinDose(int satirSayisi, int sutunSayisi, int mayinSayisi) {
@@ -177,15 +181,15 @@ public class MineSweeper {
     }
 
 
-    private static void komsulariBosalt(ArrayList<int[][]> mayin, int s, int t) {
-        if (s < 0 || s > mayin.get(0).length-1 || t < 0 || t > mayin.get(0)[0].length-1 || mayin.get(0)[s][t] != 0|| mayin.get(1)[s][t]==1)
+    private static void hucreleriAc(ArrayList<int[][]> mayin, int s, int t) {
+        if (s < 0 || s > mayin.get(0).length - 1 || t < 0 || t > mayin.get(0)[0].length - 1 || mayin.get(0)[s][t] != 0 || mayin.get(1)[s][t] == 1)
             return;
         else {
             mayin.get(1)[s][t] = 1;
-            komsulariBosalt(mayin, s - 1, t);
-            komsulariBosalt(mayin, s + 1, t);
-            komsulariBosalt(mayin, s , t - 1);
-            komsulariBosalt(mayin, s , t + 1);
+            hucreleriAc(mayin, s - 1, t);
+            hucreleriAc(mayin, s + 1, t);
+            hucreleriAc(mayin, s, t - 1);
+            hucreleriAc(mayin, s, t + 1);
         }
     }
 }

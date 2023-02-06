@@ -1,14 +1,16 @@
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
 public class MineSweeper {
-    private static int isaretSayisi;
-    private static int dogruTahminSayisi;
-    private static int mayinSayisi;
-    private static int[][] mayinliBolge;
-    private static int[][] Takip;
+    JFrame frame;
+    public MineSweeper(){
+    }
+    private static int isaretSayisi, dogruTahminSayisi, mayinSayisi;
+    private static int[][] mayinliBolge, Takip;
 
     public void run() throws InterruptedException {
         bilgiGiris();

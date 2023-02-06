@@ -7,6 +7,9 @@ public class MineSweeper {
     private static int isaretSayisi;
     private static int dogruTahminSayisi;
     private static int mayinSayisi;
+    private static int[][] mayinliBolge;
+    private static int[][] Takip;
+
     public void run() throws InterruptedException {
         bilgiGiris();
     }
@@ -24,27 +27,46 @@ public class MineSweeper {
         int zorlukSeviyesi = scanInt.nextInt();
 
         mayinSayisi = mayinSayisiHesapla(satirSayisi, sutunSayisi, zorlukSeviyesi);
-
-        String[][] mayinliBolge = mayinDose(satirSayisi, sutunSayisi, mayinSayisi);
-        int[][] SayiTablosu = mayinliBolgeSayiliOlustur(mayinliBolge, satirSayisi, sutunSayisi);
-        int[][] Takip = new int[satirSayisi][sutunSayisi]; // elemanları: 0 = Kapalı(işaretsiz) / 1 = Açık / 2 = İşaretli
-        ArrayList<int[][]> mayin = new ArrayList<>();
-        mayin.add(SayiTablosu);
-        mayin.add(Takip);
+        Takip = new int[satirSayisi][sutunSayisi]; // elemanları: 0 = Kapalı(işaretsiz) / 1 = Açık / 2 = İşaretli
 
         // mayinliBolgeYazdir(mayinliBolge);
         // mayinliBolgeSayiliYazdir(SayiTablosu);
-        sonHaliYazdir(mayin);
-        oyunaBasla(mayin, mayinSayisi);
-
-
+        mayinDose(satirSayisi, sutunSayisi, mayinSayisi);
+        sonHaliYazdir();
+        oyunaBasla();
     }
 
     private static int mayinSayisiHesapla(int satirSayisi, int sutunSayisi, int zorlukSeviyesi) {
         return ((satirSayisi * sutunSayisi) / 8) * zorlukSeviyesi;
     }
 
-    public static void oyunaBasla(ArrayList<int[][]> mayin, int mayinSayisi) throws InterruptedException {
+    public static void mayinDose(int satirSayisi, int sutunSayisi, int mayinSayisi) {
+        mayinliBolge = new int[satirSayisi][sutunSayisi];
+        for (int i = 0; i < mayinSayisi; i++) {
+            int mayinSatir = (int) (Math.random() * satirSayisi);
+            int mayinSutun = (int) (Math.random() * sutunSayisi);
+            if (mayinliBolge[mayinSatir][mayinSutun] != 9) {
+                mayinliBolge[mayinSatir][mayinSutun] = 9;
+            } else i--;
+        }
+
+        for (int i = 0; i < satirSayisi; i++) {
+            for (int j = 0; j < sutunSayisi; j++) {
+                if (mayinliBolge[i][j] == 0) {
+                    for (int k = i - 1; k <= i + 1; k++) {
+                        for (int l = j - 1; l <= j + 1; l++) {
+                            if ((k == i && l == j) || k < 0 || l < 0 || k >= satirSayisi || l >= sutunSayisi) continue;
+                            if (mayinliBolge[k][l] == 9) {
+                                mayinliBolge[i][j]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void oyunaBasla() throws InterruptedException {
         int sayac = 1;
         Scanner scanInt = new Scanner(System.in);
         System.out.println("\nMayınlı bölge oluşturuldu..");
@@ -56,7 +78,7 @@ public class MineSweeper {
             int s = scanInt.nextInt();
             System.out.print("Sütun numarası girin = ");
             int t = scanInt.nextInt();
-            if (s >= 0 && s < mayin.get(0).length && t >= 0 && t < mayin.get(0).length) {
+            if (s >= 0 && s < mayinliBolge.length && t >= 0 && t < mayinliBolge[0].length) {
                 sayac++;
 
                 System.out.println("Bu hücreyi açmak için 1, işaretlemek için 2, işareti kaldırmak için 0 giriniz.");
@@ -64,13 +86,13 @@ public class MineSweeper {
                 secim = scanInt.nextInt();
                 switch (secim) {
                     case 0:
-                        isaretiKaldir(mayin, s, t);
+                        isaretiKaldir(s, t);
                         break;
                     case 1:
-                        hucreAc(mayin, s, t);
+                        hucreAc(s, t);
                         break;
                     case 2:
-                        isaretle(mayin, s, t);
+                        isaretle(s, t);
                         break;
                     default:
                         System.out.println("Hatalı giriş..");
@@ -79,117 +101,80 @@ public class MineSweeper {
         }
     }
 
-    private static void hucreAc(ArrayList<int[][]> mayin, int s, int t) {
-        if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre zaten açık");
+    private static void hucreAc(int s, int t) {
+        if (Takip[s][t] == 1) System.out.println("Bu hücre zaten açık");
         else {
-            if (mayin.get(0)[s][t] == 9) {
+            if (mayinliBolge[s][t] == 9) {
                 System.out.println("Mayına bastınız.. GAME OVER!");
                 System.exit(1);
-            } else if (mayin.get(0)[s][t] != 0) mayin.get(1)[s][t] = 1;
-            else hucreleriAc(mayin, s, t);
+            } else if (mayinliBolge[s][t] != 0) Takip[s][t] = 1;
+            else hucreleriAc(s, t);
         }
-        sonHaliYazdir(mayin);
+        sonHaliYazdir();
     }
 
-    private static void isaretle(ArrayList<int[][]> mayin, int s, int t) {
-        if (mayin.get(1)[s][t] == 2) System.out.println("Bu hücre zaten işaretlenmiş.");
-        else if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre açık");
-        else {mayin.get(1)[s][t] = 2; isaretSayisi++;}
-        if (mayin.get(0)[s][t]==9) dogruTahminSayisi++;
-        if (dogruTahminSayisi==isaretSayisi && mayinSayisi==isaretSayisi){sonHaliYazdir(mayin); System.out.println("Tebrikler...!  Tüm mayınları doğru işaretlediniz..");
-            System.exit(2);}
-        sonHaliYazdir(mayin);
-    }
-
-    private static void isaretiKaldir(ArrayList<int[][]> mayin, int s, int t) {
-        if (mayin.get(1)[s][t] == 0) System.out.println("Bu hücre işaretlenmemiş.");
-        else if (mayin.get(1)[s][t] == 1) System.out.println("Bu hücre açık");
-        else {mayin.get(1)[s][t] = 0; isaretSayisi--;}
-        sonHaliYazdir(mayin);
-
-    }
-
-    public static int[][] mayinliBolgeSayiliOlustur(String[][] mayinliBolge, int satirSayisi, int sutunSayisi) {
-        int[][] mayinliBolgeSayili = new int[satirSayisi][sutunSayisi];
-        for (int i = 0; i < satirSayisi; i++) {
-            for (int j = 0; j < sutunSayisi; j++) {
-                if (Objects.equals(mayinliBolge[i][j], "-")) {
-                    for (int k = i - 1; k <= i + 1; k++) {
-                        for (int l = j - 1; l <= j + 1; l++) {
-                            if ((k == i && l == j) || k < 0 || l < 0 || k >= satirSayisi || l >= sutunSayisi) continue;
-                            if (mayinliBolge[k][l].equals("*")) {
-                                mayinliBolgeSayili[i][j]++;
-                            }
-                        }
-                    }
-                } else mayinliBolgeSayili[i][j] = 9;
-            }
+    private static void isaretle(int s, int t) {
+        if (Takip[s][t] == 2) System.out.println("Bu hücre zaten işaretlenmiş.");
+        else if (Takip[s][t] == 1) System.out.println("Bu hücre açık");
+        else {
+            Takip[s][t] = 2;
+            isaretSayisi++;
         }
-        return mayinliBolgeSayili;
-    }
-
-    public static void mayinliBolgeSayiliYazdir(int[][] mayinliBolgeSayili) { // Mayin tarlasında mayınlara temas eden hücreler yazdiriliyor
-        for (int[] i : mayinliBolgeSayili) {
-            for (int s : i) {
-                System.out.print(s + "\t");
-            }
-            System.out.println();
+        if (mayinliBolge[s][t] == 9) dogruTahminSayisi++;
+        if (dogruTahminSayisi == isaretSayisi && mayinSayisi == isaretSayisi) {
+            sonHaliYazdir();
+            System.out.println("Tebrikler...!  Tüm mayınları doğru işaretlediniz..");
+            System.exit(2);
         }
+        sonHaliYazdir();
     }
 
-    public static void mayinliBolgeYazdir(String[][] mayinliBolge) { // Yeni oluşturulan mayin tarlası yazdiriliyor
-        for (String[] strings : mayinliBolge) {
-            for (String string : strings) {
-                System.out.print(string + "\t");
+    private static void isaretiKaldir(int s, int t) {
+        if (Takip[s][t] == 0) System.out.println("Bu hücre işaretlenmemiş.");
+        else if (Takip[s][t] == 1) System.out.println("Bu hücre açık");
+        else {
+            Takip[s][t] = 0;
+            isaretSayisi--;
+        }
+        sonHaliYazdir();
+    }
+
+    public static void mayinliBolgeYazdir() { // Yeni oluşturulan mayin tarlası yazdiriliyor
+        for (int[] ints : mayinliBolge) {
+            for (int i : ints) {
+                System.out.print(i + "\t");
             }
             System.out.println();
         }
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     }
 
-    public static String[][] mayinDose(int satirSayisi, int sutunSayisi, int mayinSayisi) {
-        String[][] mayinliBolge = new String[satirSayisi][sutunSayisi];
-        for (String[] strings : mayinliBolge) {
-            Arrays.fill(strings, "-");
-        }
-
-        for (int i = 0; i < mayinSayisi; i++) {
-            int mayinSatir = (int) (Math.random() * satirSayisi);
-            int mayinSutun = (int) (Math.random() * sutunSayisi);
-            if (!Objects.equals(mayinliBolge[mayinSatir][mayinSutun], "*")) {
-                mayinliBolge[mayinSatir][mayinSutun] = "*";
-            } else i--;
-        }
-        return mayinliBolge;
-    }
-
-    public static void sonHaliYazdir(ArrayList<int[][]> mayin) {
-        for (int i = 0; i < mayin.get(0).length; i++) {
-            for (int j = 0; j < mayin.get(0)[0].length; j++) {
-                if (mayin.get(1)[i][j] == 0) {
+    public static void sonHaliYazdir() {
+        for (int i = 0; i < mayinliBolge.length; i++) {
+            for (int j = 0; j < mayinliBolge[0].length; j++) {
+                if (Takip[i][j] == 0) {
                     System.out.print("-" + "\t");
                 }//Hücre kapalıysa - yazacak
-                if (mayin.get(1)[i][j] == 1) {
-                    if (mayin.get(0)[i][j] == 0) System.out.print(" " + "\t");
+                if (Takip[i][j] == 1) {
+                    if (mayinliBolge[i][j] == 0) System.out.print(" " + "\t");
                     else
-                        System.out.print(mayin.get(0)[i][j] + "\t");// Hücre açıksa Hücrenin değdiği mayın sayısını yazacak
+                        System.out.print(mayinliBolge[i][j] + "\t");// Hücre açıksa Hücrenin değdiği mayın sayısını yazacak
                 }
-                if (mayin.get(1)[i][j] == 2) System.out.print("F" + "\t");// Hücre işaretliyse F yazacak
+                if (Takip[i][j] == 2) System.out.print("F" + "\t");// Hücre işaretliyse F yazacak
             }
             System.out.println();
         }
     }
 
-
-    private static void hucreleriAc(ArrayList<int[][]> mayin, int s, int t) {
-        if (s < 0 || s > mayin.get(0).length - 1 || t < 0 || t > mayin.get(0)[0].length - 1 || mayin.get(0)[s][t] != 0 || mayin.get(1)[s][t] == 1)
+    private static void hucreleriAc(int s, int t) {
+        if (s < 0 || s > mayinliBolge.length - 1 || t < 0 || t > mayinliBolge[0].length - 1 || mayinliBolge[s][t] != 0 || Takip[s][t] == 1)
             return;
         else {
-            mayin.get(1)[s][t] = 1;
-            hucreleriAc(mayin, s - 1, t);
-            hucreleriAc(mayin, s + 1, t);
-            hucreleriAc(mayin, s, t - 1);
-            hucreleriAc(mayin, s, t + 1);
+            Takip[s][t] = 1;
+            hucreleriAc(s - 1, t);
+            hucreleriAc(s + 1, t);
+            hucreleriAc(s, t - 1);
+            hucreleriAc(s, t + 1);
         }
     }
 }
